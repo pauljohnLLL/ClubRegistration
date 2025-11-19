@@ -86,5 +86,83 @@ namespace ClubRegistration
                 return false;
             }
         }
+        public bool UpdateStudent(long StudentID, string FirstName, string MiddleName,
+                          string LastName, int Age, string Gender, string Program)
+        {
+            try
+            {
+                sqlCommand = new SqlCommand(
+                    "UPDATE ClubMembers SET FirstName=@FirstName, MiddleName=@MiddleName, " +
+                    "LastName=@LastName, Age=@Age, Gender=@Gender, Program=@Program " +
+                    "WHERE StudentId=@StudentID",
+                    sqlConnect);
+
+                sqlCommand.Parameters.Add("@FirstName", SqlDbType.VarChar).Value = FirstName;
+                sqlCommand.Parameters.Add("@MiddleName", SqlDbType.VarChar).Value = MiddleName;
+                sqlCommand.Parameters.Add("@LastName", SqlDbType.VarChar).Value = LastName;
+                sqlCommand.Parameters.Add("@Age", SqlDbType.Int).Value = Age;
+                sqlCommand.Parameters.Add("@Gender", SqlDbType.VarChar).Value = Gender;
+                sqlCommand.Parameters.Add("@Program", SqlDbType.VarChar).Value = Program;
+                sqlCommand.Parameters.Add("@StudentID", SqlDbType.BigInt).Value = StudentID;
+
+                sqlConnect.Open();
+                sqlCommand.ExecuteNonQuery();
+                sqlConnect.Close();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error updating student: " + ex.Message);
+                return false;
+            }
+        }
+
+        public Student GetStudentById(long studentId)
+        {
+            try
+            {
+                string query = "SELECT ID, StudentId, FirstName, MiddleName, LastName, Age, Gender, Program " +
+                               "FROM ClubMembers WHERE StudentId = @StudentId";
+
+                sqlCommand = new SqlCommand(query, sqlConnect);
+                sqlCommand.Parameters.Add("@StudentId", SqlDbType.BigInt).Value = studentId;
+
+                sqlConnect.Open();
+                sqlReader = sqlCommand.ExecuteReader();
+
+                if (sqlReader.Read())
+                {
+                    Student s = new Student
+                    {
+                        ID = Convert.ToInt32(sqlReader["ID"]),
+                        StudentId = Convert.ToInt64(sqlReader["StudentId"]),
+                        FirstName = sqlReader["FirstName"].ToString(),
+                        MiddleName = sqlReader["MiddleName"].ToString(),
+                        LastName = sqlReader["LastName"].ToString(),
+                        Age = Convert.ToInt32(sqlReader["Age"]),
+                        Gender = sqlReader["Gender"].ToString(),
+                        Program = sqlReader["Program"].ToString()
+                    };
+
+                    sqlReader.Close();
+                    sqlConnect.Close();
+                    return s;
+                }
+
+                sqlReader.Close();
+                sqlConnect.Close();
+                return null;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading student: " + ex.Message);
+                if (sqlConnect.State == ConnectionState.Open)
+                    sqlConnect.Close();
+                return null;
+            }
+        }
     }
 }
+
+
+
